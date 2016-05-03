@@ -39,12 +39,14 @@ noError$:
 	xl .req r6
 	yl .req r7
 	colourScreen .req r10
+	lines .req r11
 
 	mov colour,#0
 	mov randnum,#0
 	mov xl,#0
 	mov yl,#0
 	mov colourScreen,#0x07e0
+	mov lines,#0
 
 loopPaint$:
 	xn .req r8
@@ -69,14 +71,19 @@ loopPaint$:
 	bl ClampedUmodulo
 	and yn,r0
 
-	// Increment colour.
-	add colour,#1
-	ldr r0,=0xffff
-	and colour,r0
+	// Randomize colour.
+	mov r0,randnum
+	bl Random
+	mov randnum,r0
+	ldr r1,=0xffff
+	bl ClampedUmodulo
+	mov colour,r0
 
 	// Draw
-	teq colour,r0
-	bleq ClearScreen$
+	cmp lines,#10240
+	addlo lines,#1
+	movhs lines,#0
+	blhs ClearScreen$
 
 	mov r0,colour
 	bl SetForeColour
