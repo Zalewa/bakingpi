@@ -4,6 +4,9 @@ _start:
 	b main
 
 	.section .text
+	.equ width, 1920
+	.equ height, 1080
+	.equ depth, 16
 main:
 	mov sp, #0x8000
 
@@ -11,9 +14,9 @@ main:
 	mov r1, #1
 	bl SetGpioFunction
 
-	mov r0, #1024
-	mov r1, #768
-	mov r2, #16
+	ldr r0, =width
+	ldr r1, =height
+	ldr r2, =depth
 	bl InitialiseFrameBuffer
 	teq r0, #0
 	bne noError$
@@ -49,12 +52,20 @@ render$:
 	ldr fbAddr, [fbInfoAddr, #32]
 	colour .req r0
 	y .req r1
-	mov y, #768
+	ldr y, =height
 drawRow$:
 	x .req r2
-	mov x, #1024
+	ldr x, =width
 drawPixel$:
+	push {r0,r1,r2,r3}
+	mov r0, x
+	bl IsBorder$
+	teq r0, #0
+	pop {r0,r1,r2,r3}
+	pusheq {colour}
+	ldreq colour, =0xffff
 	strh colour, [fbAddr]
+	popeq {colour}
 	add fbAddr, #2
 	sub x, #1
 	teq x, #0
@@ -73,3 +84,26 @@ drawPixel$:
 
 	.unreq fbAddr
 	.unreq fbInfoAddr
+
+
+IsBorder$:
+	x .req r0
+	y .req r1
+	teq x,#1
+	teqne y,#1
+	moveq r0,#0
+	moveq pc,lr
+	w .req r2
+	h .req r3
+	ldr w,=width
+	ldr h,=height
+	teq x,w
+	teqne y,h
+	moveq r0,#0
+	moveq pc,lr
+	.unreq x
+	.unreq y
+	.unreq w
+	.unreq h
+	mov r0,#1
+	mov pc,lr
