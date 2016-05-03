@@ -9,6 +9,8 @@ Random:
 	add a,xnm
 	.unreq xnm
 	add r0,a,#73
+	rev16 r0,r0
+	rev r0,r0
 
 	.unreq a
 	mov pc,lr

@@ -44,7 +44,7 @@ noError$:
 	mov randnum,#0
 	mov xl,#0
 	mov yl,#0
-	mov colourScreen,#0
+	mov colourScreen,#0x07e0
 
 loopPaint$:
 	xn .req r8
@@ -58,18 +58,16 @@ loopPaint$:
 	mov yn,r0
 	mov randnum,yn
 
-	// Normalize x,y.
-	lsr xn,#22
-	lsr yn,#22
+	// Normalize x,y using modulo division.
+	mov r0,xn
+	ldr r1,=width
+	bl ClampedUmodulo
+	and xn,r0
 
-	dim .req r0
-	ldr dim,=width
-	cmp xn,dim
-	bge loopPaint$
-	ldr dim,=height
-	cmp yn,dim
-	bge loopPaint$
-	.unreq dim
+	mov r0,yn
+	ldr r1,=height
+	bl ClampedUmodulo
+	and yn,r0
 
 	// Increment colour.
 	add colour,#1
